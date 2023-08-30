@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\CurrencyExchange;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 
 class CurrencyApiController extends Controller
 {
@@ -34,19 +36,31 @@ class CurrencyApiController extends Controller
 
     public function fetchAndStoreCurrencyExchange()
     {
-        $currencies1 = ['EUR', 'GBP', 'USD'];
+        $currencies = ['EUR', 'GBP', 'USD'];
 
-        foreach ($currencies1 as $currency) {
-            $response = Http::get("http://api.nbp.pl/api/exchangerates/rates/a/{$currency}/last/7/");
-            $data = $response->json();
+        foreach ($currencies as $currency) {
+            $lastUpdated = Cache::get("last_update:{$currency}");
+            if ($lastUpdated && Carbon::now()->isSameDay($lastUpdated)) {
+                return response()->json(['message' => 'Currency exchange rates already been fetched today.']);
+            } else {
+                $response = Http::get("http://api.nbp.pl/api/exchangerates/rates/a/{$currency}/last/2/");
+                $data = $response->json();
 
-            foreach ($data['rates'] as $rateData) {
-                CurrencyExchange::create([
-                    'currency_code' => $currency,
-                    'exchange_rate' => $rateData['mid'],
-                    'date' => $rateData['effectiveDate'],
-                ]);
+
+                foreach ($data['rates'] as $rateData) {
+
+                    CurrencyExchange::create([
+                        'currency_code' => $currency,
+                        'exchange_rate' => $rateData['mid'],
+                        'date' => $rateData['effectiveDate'],
+                    ]);
+
+                }
+                Cache::put("last_update:{$currency}", Carbon::now(), now()->addDay());
             }
+
+
+
         }
         return response()->json(['message' => 'Currency exchange rates fetched and stored.']);
     }
