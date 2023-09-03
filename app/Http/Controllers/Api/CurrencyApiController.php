@@ -41,7 +41,7 @@ class CurrencyApiController extends Controller
             if ($lastUpdated && Carbon::now()->isSameDay($lastUpdated)) {
                 $messages[$currency] = "Data for {$currency} has already been updated today.";
             } else {
-                $response = Http::get("http://api.nbp.pl/api/exchangerates/rates/a/{$currency}/last/7/");
+                $response = Http::get("http://api.nbp.pl/api/exchangerates/rates/a/{$currency}/last/3/");
                 $data = $response->json();
                 foreach ($data['rates'] as $rateData) {
                     CurrencyExchange::create([
