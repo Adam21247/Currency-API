@@ -23,3 +23,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::get('currency-rates',[CurrencyApiController::class, 'index']);
 Route::get('fetch-currencies', [CurrencyApiController::class, 'fetchAndStoreCurrencyExchange']);
+Route::get('currency-rates/{date}',[CurrencyApiController::class, 'getCurrencyRatesByDate']);

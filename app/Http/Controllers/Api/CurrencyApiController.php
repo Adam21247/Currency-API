@@ -56,4 +56,10 @@ class CurrencyApiController extends Controller
         }
         return response()->json(['messages' => $messages]);
     }
+
+    public function getCurrencyRatesByDate($date)
+    {
+        $currencyRates = CurrencyExchange::where('date', $date)->get(['currency_code','exchange_rate','date']);
+        return response()->json(['data' => $currencyRates]);
+    }
 }
