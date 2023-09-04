@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\CurrencyExchange;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 
@@ -59,7 +58,7 @@ class CurrencyApiController extends Controller
 
     public function getCurrencyRatesByDate($date)
     {
-        $currencyRates = CurrencyExchange::where('date', $date)->get(['currency_code','exchange_rate','date']);
+        $currencyRates = CurrencyExchange::where('date', $date)->get(['currency_code', 'exchange_rate', 'date']);
         return response()->json(['data' => $currencyRates]);
     }
 }
