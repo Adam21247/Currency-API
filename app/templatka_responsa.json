@@ -1,0 +1,23 @@
+{
+    "data": [
+        {
+            "currency": "USD",
+            "exchange_rate": 4.3501,
+            "date": "xxxx"
+        },
+        {
+            "currency": "EUR",
+            "exchange_rate": 4.6529,
+            "date": "xxxx"
+        },
+        {
+            "currency": "GBP",
+            "exchange_rate": 5.3803,
+            "date": "xxxx"
+        }
+    ],
+
+    "message" : "Rates fetche successuflly"
+}
+
+

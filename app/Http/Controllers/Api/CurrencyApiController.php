@@ -7,35 +7,38 @@ use App\Models\CurrencyExchange;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use App\Http\Services\CurrencyApiService;
+
 
 class CurrencyApiController extends Controller
 {
+
+    private $currencyApiService;
+
+    public function __construct(CurrencyApiService $currencyApiService)
+    {
+        $this->currencyApiService = $currencyApiService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $response = Http::get('http://api.nbp.pl/api/exchangerates/tables/A/');
+        $response = Http::get(env('NBP_API_CURRENCIES_URL'));
         $currencies = $response->json();
-        $selectedCurrencies = ['EUR', 'GBP', 'USD'];
-        $selectedExchangeRates = [];
-        foreach ($currencies[0]['rates'] as $rate) {
-            if (in_array($rate['code'], $selectedCurrencies)) {
-                $selectedExchangeRates[] = [
-                    'currency' => $rate['code'],
-                    'exchange_rate' => $rate['mid']
-                ];
-            }
-        }
-        return response()->json($selectedExchangeRates);
+
+        return response()->json($this->currencyApiService->getExchangeRates($currencies));
     }
 
     public function fetchAndStoreCurrencyExchange()
     {
-        $currencies = ['EUR', 'GBP', 'USD'];
-        $messages = [];
-        foreach ($currencies as $currency) {
-            $lastUpdated = Cache::get("last_update:{$currency}");
+
+
+$currencies = ['EUR', 'GBP', 'USD'];
+$messages = [];
+foreach ($currencies as $currency){
+$lastUpdated = Cache::get("last_update:{$currency}");
 
             if ($lastUpdated && Carbon::now()->isSameDay($lastUpdated)) {
                 $messages[$currency] = "Data for {$currency} has already been updated today.";
@@ -54,7 +57,7 @@ class CurrencyApiController extends Controller
             }
         }
         return response()->json(['messages' => $messages]);
-    }
+}
 
     public function getCurrencyRatesByDate($date)
     {
@@ -62,3 +65,4 @@ class CurrencyApiController extends Controller
         return response()->json(['data' => $currencyRates]);
     }
 }
+
