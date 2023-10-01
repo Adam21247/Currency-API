@@ -33,40 +33,18 @@ class CurrencyApiController extends Controller
         return response()->json($this->currencyApiService->getExchangeRates($currencies));
     }
 
-    public function fetchAndStoreCurrencyExchange()
+    public function store()
     {
-
-        $currencies = ['EUR', 'GBP', 'USD'];
-        foreach ($currencies as $currency) {
-            $currentDate = Carbon::now();
-            if (DB::table('currency_exchanges')->where('currency_code', $currency)
-                ->whereNotNull('exchange_rate')
-                ->whereDate('created_at', $currentDate->toDateString())
-                ->exists()) {
-                    return response()->json(['message' => 'Currencies already fetched']);
-            } else {
-                $response = Http::get("http://api.nbp.pl/api/exchangerates/rates/a/{$currency}/last/3");
-                $data = $response->json();
-                dump($data);
-                foreach ($data['rates'] as $rateData) {
-                    CurrencyExchange::create([
-                        'currency_code' => $currency,
-                        'exchange_rate' => $rateData['mid'],
-                        'date' => $rateData['effectiveDate'],
-                    ]);
-                }
-            }
-        }
-            return response()->json(['message' => 'Congratulations! You fetched currencies']);
+        return response()->json($this->currencyApiService->fetchRates());
     }
 
 
-        public function getCurrencyRatesByDate($date)
-        {
-            $currencyRates = CurrencyExchange::where('date', $date)->get(['currency_code', 'exchange_rate', 'date']);
-            return response()->json(['data' => $currencyRates]);
-        }
+    public function getCurrencyRatesByDate($date)
+    {
+        $currencyRates = CurrencyExchange::where('date', $date)->get(['currency_code', 'exchange_rate', 'date']);
+        return response()->json(['data' => $currencyRates]);
     }
+}
 
 
 
