@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\CurrencyExchange;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use App\Http\Services\CurrencyApiService;
+use Illuminate\Support\Facades\Request;
 
 
 class CurrencyApiController extends Controller
@@ -25,7 +27,7 @@ class CurrencyApiController extends Controller
      */
     public function index()
     {
-        $response = Http::get(env('NBP_API_CURRENCIES_URL'));
+        $response = Http::get(env('NBP_API_CURRENCIES_URL_TODAY'));
         $currencies = $response->json();
 
         return response()->json($this->currencyApiService->getExchangeRates($currencies));
@@ -34,17 +36,18 @@ class CurrencyApiController extends Controller
     public function fetchAndStoreCurrencyExchange()
     {
 
-
-$currencies = ['EUR', 'GBP', 'USD'];
-$messages = [];
-foreach ($currencies as $currency){
-$lastUpdated = Cache::get("last_update:{$currency}");
-
-            if ($lastUpdated && Carbon::now()->isSameDay($lastUpdated)) {
-                $messages[$currency] = "Data for {$currency} has already been updated today.";
+        $currencies = ['EUR', 'GBP', 'USD'];
+        foreach ($currencies as $currency) {
+            $currentDate = Carbon::now();
+            if (DB::table('currency_exchanges')->where('currency_code', $currency)
+                ->whereNotNull('exchange_rate')
+                ->whereDate('created_at', $currentDate->toDateString())
+                ->exists()) {
+                    return response()->json(['message' => 'Currencies already fetched']);
             } else {
-                $response = Http::get("http://api.nbp.pl/api/exchangerates/rates/a/{$currency}/last/3/");
+                $response = Http::get("http://api.nbp.pl/api/exchangerates/rates/a/{$currency}/last/3");
                 $data = $response->json();
+                dump($data);
                 foreach ($data['rates'] as $rateData) {
                     CurrencyExchange::create([
                         'currency_code' => $currency,
@@ -52,17 +55,18 @@ $lastUpdated = Cache::get("last_update:{$currency}");
                         'date' => $rateData['effectiveDate'],
                     ]);
                 }
-                Cache::put("last_update:{$currency}", Carbon::now(), now()->addDay());
-                $messages[$currency] = "Currency exchange rates for {$currency} fetched and stored.";
             }
         }
-        return response()->json(['messages' => $messages]);
-}
-
-    public function getCurrencyRatesByDate($date)
-    {
-        $currencyRates = CurrencyExchange::where('date', $date)->get(['currency_code', 'exchange_rate', 'date']);
-        return response()->json(['data' => $currencyRates]);
+            return response()->json(['message' => 'Congratulations! You fetched currencies']);
     }
-}
+
+
+        public function getCurrencyRatesByDate($date)
+        {
+            $currencyRates = CurrencyExchange::where('date', $date)->get(['currency_code', 'exchange_rate', 'date']);
+            return response()->json(['data' => $currencyRates]);
+        }
+    }
+
+
 
