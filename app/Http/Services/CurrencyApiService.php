@@ -39,7 +39,7 @@ class CurrencyApiService
                 ->whereNotNull('exchange_rate')
                 ->whereDate('created_at', $currentDate->toDateString())
                 ->exists()) {
-                return response()->json(['message' => 'Currencies already fetched']);
+                return "Currencies has already been fetched. You can fetch currenices once a day";
             } else {
                 $response = Http::get("http://api.nbp.pl/api/exchangerates/rates/a/{$currency}/last/3");
                 $data = $response->json();
@@ -52,6 +52,6 @@ class CurrencyApiService
                 }
             }
         }
-        return response()->json(['message' => 'Congratulations! You fetched currencies']);
+        return "Congratulations! You fetched currencies";
     }
 }

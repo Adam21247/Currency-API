@@ -35,7 +35,9 @@ class CurrencyApiController extends Controller
 
     public function store()
     {
-        return response()->json($this->currencyApiService->fetchRates());
+        return response()->json(['message'=>$this->currencyApiService->fetchRates()]);
+
+
     }
 
 
