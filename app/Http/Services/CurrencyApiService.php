@@ -16,13 +16,16 @@ class CurrencyApiService
     public function getExchangeRates($currencies)
     {
 
+        $date = ($currencies[0]['effectiveDate']);
+
         $selectedExchangeRates = [];
 
         foreach ($currencies[0]['rates'] as $rate) {
             if (in_array($rate['code'], $this->selectedCurrencies)) {
                 $selectedExchangeRates[] = [
                     'currency' => $rate['code'],
-                    'exchange_rate' => $rate['mid']
+                    'exchange_rate' => $rate['mid'],
+                    'date' => $date
                 ];
             }
         }
@@ -39,7 +42,7 @@ class CurrencyApiService
                 ->whereNotNull('exchange_rate')
                 ->whereDate('created_at', $currentDate->toDateString())
                 ->exists()) {
-                return "Currencies has already been fetched. You can fetch currenices once a day";
+                return "Currencies has already been fetched. You can fetch currencies once a day";
             } else {
                 $response = Http::get("http://api.nbp.pl/api/exchangerates/rates/a/{$currency}/last/3");
                 $data = $response->json();
