@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Http;
 
 class CurrencyApiService
 {
-    private $selectedCurrencies = ['EUR', 'GBP', 'USD'];
+    const SELECTCURRENCIES = ['EUR', 'GBP', 'USD'];
 
     public function getExchangeRates($currencies)
     {
@@ -21,7 +21,7 @@ class CurrencyApiService
         $selectedExchangeRates = [];
 
         foreach ($currencies[0]['rates'] as $rate) {
-            if (in_array($rate['code'], $this->selectedCurrencies)) {
+            if (in_array($rate['code'], self::SELECTCURRENCIES)) {
                 $selectedExchangeRates[] = [
                     'currency' => $rate['code'],
                     'exchange_rate' => $rate['mid'],
@@ -36,16 +36,18 @@ class CurrencyApiService
     public function fetchRates()
     {
 
-        foreach ($this->selectedCurrencies as $currency) {
+        foreach (self::SELECTCURRENCIES as $currency) {
             $currentDate = Carbon::now();
+
             if (DB::table('currency_exchanges')->where('currency_code', $currency)
                 ->whereNotNull('exchange_rate')
                 ->whereDate('created_at', $currentDate->toDateString())
                 ->exists()) {
                 return "Currencies has already been fetched. You can fetch currencies once a day";
             } else {
-                $response = Http::get("http://api.nbp.pl/api/exchangerates/rates/a/{$currency}/last/3");
+                $response = Http::get(env('NBP_API_CURRENCIES_URL_LAST_DAYS')."/$currency/last/3");
                 $data = $response->json();
+
                 foreach ($data['rates'] as $rateData) {
                     CurrencyExchange::create([
                         'currency_code' => $currency,
@@ -58,3 +60,4 @@ class CurrencyApiService
         return "Congratulations! You fetched currencies";
     }
 }
+
