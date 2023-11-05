@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\CurrencyExchange;
 use Illuminate\Support\Facades\Http;
 use App\Http\Services\CurrencyApiService;
+use App\Exports\CurrencyExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class CurrencyApiController extends Controller
@@ -31,7 +33,7 @@ class CurrencyApiController extends Controller
 
     public function store()
     {
-        return response()->json(['message'=>$this->currencyApiService->fetchRates()]);
+        return response()->json(['message' => $this->currencyApiService->fetchRates()]);
     }
 
 
@@ -39,6 +41,11 @@ class CurrencyApiController extends Controller
     {
         $currencyRates = CurrencyExchange::where('date', $date)->get(['currency_code', 'exchange_rate', 'date']);
         return response()->json(['data' => $currencyRates]);
+    }
+
+    public function exportExcel()
+    {
+        return (Excel::download(new CurrencyExport, 'currency-excel.xlsx'));
     }
 }
 

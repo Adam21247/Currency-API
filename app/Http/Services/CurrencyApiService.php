@@ -45,9 +45,8 @@ class CurrencyApiService
                 ->exists()) {
                 return "Currencies has already been fetched. You can fetch currencies once a day";
             } else {
-                $response = Http::get(env('NBP_API_CURRENCIES_URL_LAST_DAYS')."/$currency/last/3");
+                $response = Http::get(env('NBP_API_CURRENCIES_URL_LAST_DAYS') . "/$currency/last/3");
                 $data = $response->json();
-
                 foreach ($data['rates'] as $rateData) {
                     CurrencyExchange::create([
                         'currency_code' => $currency,

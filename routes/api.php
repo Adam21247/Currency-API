@@ -26,10 +26,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('fetch-currencies', [CurrencyApiController::class, 'store']);
     Route::get('currency-rates/{date}', [CurrencyApiController::class, 'getCurrencyRatesByDate']);
     Route::post('logout', [AuthController::class, 'logout']);
+//    Route::get('excel-export', [CurrencyApiController::class, 'exportExcel']);
 });
 
 Route::middleware('auth.api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
+Route::get('excel-export', [CurrencyApiController::class, 'exportExcel']);
